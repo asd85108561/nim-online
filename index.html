@@ -785,12 +785,6 @@
             }
 
             // ======= UI wiring =======
-            function loadPresets() {
-                const url = localStorage.getItem(LS_SB_URL) || PRESET_URL;
-                const key = localStorage.getItem(LS_SB_KEY) || PRESET_KEY;
-                $("sbUrl").value = url || "";
-                $("sbKey").value = key || "";
-            }
 
             $("btnReset").onclick = resetIdentity;
             $("btnCreate").onclick = createRoom;
@@ -801,7 +795,6 @@
             // init
             (async () => {
                 ensureMe();        // 這行可留（但之後可考慮移除，見下方說明）
-                loadPresets();
                 $("btnCreate").disabled = true;
                 $("btnJoin").disabled = true;
                 await initSupabase();   // ✅ 關鍵：一定要 await
@@ -813,7 +806,7 @@
                 setRoomMeta(null);
                 renderBoard(null);
             })();
-            log("連線完成。可直接建立或加入房間。", "ok");
+
         })();
     </script>
 </body>
