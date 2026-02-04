@@ -493,21 +493,36 @@
             }
 
             async function initSupabase() {
-                const url = $("sbUrl").value.trim();
-                const key = $("sbKey").value.trim();
+                const url = PRESET_URL;
+                const key = PRESET_KEY;
+
                 if (!url || !key) {
-                    log("請先填入 Supabase URL 與 anon key。", "bad");
+                    log("Supabase 設定缺失", "bad");
                     return;
                 }
-                localStorage.setItem(LS_SB_URL, url);
-                localStorage.setItem(LS_SB_KEY, key);
 
-                state.sb = supabase.createClient(url, key, {
-                    realtime: { params: { eventsPerSecond: 10 } }
-                });
+                // 1. 建立 client
+                state.sb = supabase.createClient(url, key);
 
-                log("已初始化 Supabase 連線。接著建立或加入房間。", "ok");
+                // 2. 確保有匿名登入（RLS 會用 auth.uid()）
+                const { data: { session } } = await state.sb.auth.getSession();
+
+                if (!session) {
+                    const { error } = await state.sb.auth.signInAnonymously();
+                    if (error) {
+                        log("匿名登入失敗：" + error.message, "bad");
+                        return;
+                    }
+                }
+
+                // 3. 取得 uid，作為玩家身分
+                const { data: { session: s2 } } = await state.sb.auth.getSession();
+                state.meId = s2.user.id;   // ← 這是 uuid，對應 host_id / guest_id
+                $("meId").textContent = state.meId;
+
+                log("Supabase 連線完成（匿名登入）", "ok");
             }
+
 
             async function subscribeRoom(code) {
                 if (!state.sb) throw new Error("Supabase 未初始化");
@@ -777,14 +792,24 @@
             $("btnJoin").onclick = joinRoom;
             $("btnStart").onclick = startGame;
             $("btnLeave").onclick = leaveRoom;
+            $("btnCreate").disabled = true;
+            $("btnJoin").disabled = true;
 
             // init
-            ensureMe();
-            loadPresets();
-            initSupabase();   // ← 自動初始化
-            setRole(null);
-            setRoomMeta(null);
-            renderBoard(null);
+            (async () => {
+                ensureMe();        // 這行可留（但之後可考慮移除，見下方說明）
+                loadPresets();
+
+                await initSupabase();   // ✅ 關鍵：一定要 await
+
+                setRole(null);
+                setRoomMeta(null);
+                renderBoard(null);
+            })();
+            
+            $("btnCreate").disabled = false;
+            $("btnJoin").disabled = false;
+
             log("連線完成。可直接建立或加入房間。", "ok");
         })();
     </script>
