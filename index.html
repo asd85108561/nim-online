@@ -363,7 +363,9 @@
                 roomCode: null,
                 room: null,        // latest room row
                 channel: null,     // realtime channel
+                ready: false,
             };
+            window.__nim_state = state;
 
             function log(msg, cls = "") {
                 const el = $("log");
@@ -493,33 +495,37 @@
             }
 
             async function initSupabase() {
-                const url = PRESET_URL;
-                const key = PRESET_KEY;
+                const url = PRESET_URL || $("sbUrl")?.value?.trim();
+                const key = PRESET_KEY || $("sbKey")?.value?.trim();
 
                 if (!url || !key) {
-                    log("Supabase 設定缺失", "bad");
+                    log("Supabase 設定缺失（URL / anon key）", "bad");
+                    state.ready = false;
                     return;
                 }
 
-                // 1. 建立 client
-                state.sb = supabase.createClient(url, key);
+                // ✅ 先建立 client
+                state.sb = supabase.createClient(url, key, {
+                    realtime: { params: { eventsPerSecond: 10 } }
+                });
 
-                // 2. 確保有匿名登入（RLS 會用 auth.uid()）
+                // ✅ 匿名登入：讓 auth.uid() 有值，配合緊 RLS
                 const { data: { session } } = await state.sb.auth.getSession();
-
                 if (!session) {
                     const { error } = await state.sb.auth.signInAnonymously();
                     if (error) {
                         log("匿名登入失敗：" + error.message, "bad");
+                        state.ready = false;
                         return;
                     }
                 }
 
-                // 3. 取得 uid，作為玩家身分
+                // ✅ 取得 uid
                 const { data: { session: s2 } } = await state.sb.auth.getSession();
-                state.meId = s2.user.id;   // ← 這是 uuid，對應 host_id / guest_id
+                state.meId = s2.user.id;   // UUID
                 $("meId").textContent = state.meId;
 
+                state.ready = true;
                 log("Supabase 連線完成（匿名登入）", "ok");
             }
 
@@ -786,30 +792,27 @@
                 $("sbKey").value = key || "";
             }
 
-
             $("btnReset").onclick = resetIdentity;
             $("btnCreate").onclick = createRoom;
             $("btnJoin").onclick = joinRoom;
             $("btnStart").onclick = startGame;
             $("btnLeave").onclick = leaveRoom;
-            $("btnCreate").disabled = true;
-            $("btnJoin").disabled = true;
 
             // init
             (async () => {
                 ensureMe();        // 這行可留（但之後可考慮移除，見下方說明）
                 loadPresets();
-
+                $("btnCreate").disabled = true;
+                $("btnJoin").disabled = true;
                 await initSupabase();   // ✅ 關鍵：一定要 await
-
+                if (state.ready) {
+                    $("btnCreate").disabled = false;
+                    $("btnJoin").disabled = false;
+                }
                 setRole(null);
                 setRoomMeta(null);
                 renderBoard(null);
             })();
-            
-            $("btnCreate").disabled = false;
-            $("btnJoin").disabled = false;
-
             log("連線完成。可直接建立或加入房間。", "ok");
         })();
     </script>
