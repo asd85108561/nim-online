@@ -495,8 +495,8 @@
             }
 
             async function initSupabase() {
-                const url = PRESET_URL || $("sbUrl")?.value?.trim();
-                const key = PRESET_KEY || $("sbKey")?.value?.trim();
+                const url = PRESET_URL;
+                const key = PRESET_KEY;
 
                 if (!url || !key) {
                     log("Supabase 設定缺失（URL / anon key）", "bad");
