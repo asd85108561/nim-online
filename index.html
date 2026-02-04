@@ -265,15 +265,7 @@
         <div class="grid">
             <div class="card">
                 <h2>連線 / 房間</h2>
-
-                <label>Supabase URL</label>
-                <input id="sbUrl" placeholder="https://xxxx.supabase.co" />
-
-                <label>Supabase anon key</label>
-                <input id="sbKey" placeholder="eyJhbGciOi..." />
-
                 <div class="btnrow">
-                    <button id="btnInit" class="ghost">初始化連線</button>
                     <button id="btnReset" class="danger">清除本機身分</button>
                 </div>
 
@@ -356,11 +348,8 @@
             const $ = (id) => document.getElementById(id);
 
             // ======= 設定區（建議你部署前寫死，避免每次輸入） =======
-            // 你也可以把 sbUrl/sbKey 直接填在這裡，並把輸入框隱藏。
-            // const PRESET_URL = "https://xxxx.supabase.co";
-            // const PRESET_KEY = "eyJhbGciOi...";
-            const PRESET_URL = "";
-            const PRESET_KEY = "";
+            const PRESET_URL = "https://imxzafwkfklwyzncxtxu.supabase.co";
+            const PRESET_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlteHphZndrZmtsd3l6bmN4dHh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMjQ1NjgsImV4cCI6MjA4NTcwMDU2OH0.pUV2TzVAMJrEqGBqkBEF7AkOeA4nebheTYq0pRS9O_s";
             // ===========================================================
 
             const LS_ME = "nim_me_id_v1";
@@ -792,10 +781,11 @@
             // init
             ensureMe();
             loadPresets();
+            initSupabase();   // ← 自動初始化
             setRole(null);
             setRoomMeta(null);
             renderBoard(null);
-            log("1) 填入 Supabase URL/Key → 初始化連線。2) 建立或加入房間。", "");
+            log("連線完成。可直接建立或加入房間。", "ok");
         })();
     </script>
 </body>
