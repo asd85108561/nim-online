@@ -91,8 +91,9 @@
       .pile .left{min-width:0}
       .stones{max-height:90px}
       .actions{width:100%;justify-content:flex-end}
-      .actions select{display:none}
-      .actions button{display:none}
+      .actions > select{display:none}
+      .actions > button{display:none}
+      .mobile-take button{display:block}
       .mobile-take{display:flex;gap:10px;width:100%}
       .mobile-take button{flex:1;padding:14px 12px;font-size:16px}
       .btnrow button{padding:12px 12px}
@@ -383,8 +384,12 @@
           table: "nim_rooms",
           filter: "code=eq." + code
         }, payload => {
+          if (payload.eventType === "DELETE" || !payload.new) {
+            log("房間已關閉或不存在。", "warn");
+            resetLocalRoomState();
+            return;
+          }
           const row = payload.new;
-          if (!row) return;
           state.room = row;
           setRoomMeta(row);
           renderBoard(row);
