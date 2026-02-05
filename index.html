@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Nim Online（最多拿 3，單堆）</title>
+  <title>Nim Online</title>
   <style>
     :root{
       --bg:#0b1220; --card:#111a2e; --muted:#9fb0d0; --text:#e7eefc;
@@ -102,9 +102,12 @@
 </head>
 <body>
   <div class="wrap">
-    <h1>Nim Online（最多拿 3、每回合只能動一堆）</h1>
-    <p class="sub">房主建立房間取得代碼，另一位輸入代碼加入。回合制同步，最後拿走最後一顆者勝。</p>
-
+    <h1>Nim Online</h1>
+    <p class="sub">房主建立房間取得代碼，另一位輸入代碼加入。</p>
+        <h2>遊戲說明</h2>
+        <p class="sub"> 
+        桌上有幾堆石頭，每堆有若干石頭。兩位玩家輪流行動，每次只能從同一堆拿走 1~3 顆石頭。拿走最後一顆石頭的玩家獲勝。
+        </p>
     <div class="grid">
       <div class="card">
         <h2>連線 / 房間</h2>
@@ -139,7 +142,7 @@
           <button id="btnNext" class="primary" disabled>下一場</button>
         </div>
 
-        <label>加入房間（客人）</label>
+        <label>加入房間（參加者）</label>
         <input id="roomCodeInput" placeholder="輸入房間代碼（例如 A7KQ9D）" />
         <div class="btnrow">
           <button id="btnJoin">加入</button>
@@ -214,15 +217,15 @@
 
       function setRole(role) {
         state.role = role;
-        $("role").textContent = role ? (role === "host" ? "房主" : "客人") : "-";
-        $("meLabel").textContent = role ? (role === "host" ? "你是房主" : "你是客人") : "-";
+        $("role").textContent = role ? (role === "host" ? "房主" : "參加者") : "-";
+        $("meLabel").textContent = role ? (role === "host" ? "你是房主" : "你是參加者") : "-";
       }
 
       function setRoomMeta(room) {
         state.room = room;
         $("roomCode").textContent = room?.code ?? "-";
         $("roomStatus").textContent = room?.status ?? "-";
-        $("turnWho").textContent = room?.turn ? (room.turn === "host" ? "房主" : "客人") : "-";
+        $("turnWho").textContent = room?.turn ? (room.turn === "host" ? "房主" : "參加者") : "-";
 
         $("btnLeave").disabled = !room;
 
@@ -330,7 +333,7 @@
         if (room.status === "ended") {
           if (room.winner) {
             const win = (room.winner === state.role);
-            log(`遊戲結束：${room.winner === "host" ? "房主" : "客人"}獲勝。${win ? "（你贏了）" : "（你輸了）"}\n房主可按「下一場」立即重開。`, win ? "ok" : "bad");
+            log(`遊戲結束：${room.winner === "host" ? "房主" : "參加者"}獲勝。${win ? "（你贏了）" : "（你輸了）"}\n房主可按「下一場」立即重開。`, win ? "ok" : "bad");
           } else {
             log("遊戲結束。", "");
           }
@@ -467,7 +470,7 @@
 
         // 允許加入 ended（方便下一場繼續用同房間）
         if (room.guest_id && room.guest_id !== state.meId && room.host_id !== state.meId) {
-          log("此房間已有人加入（客人已滿）。", "bad");
+          log("此房間已有人加入（參加者已滿）。", "bad");
           return;
         }
 
@@ -509,7 +512,7 @@
 
         const room = await fetchRoom(state.roomCode);
         if (!room) return;
-        if (!room.guest_id) { log("尚未有客人加入。", "bad"); return; }
+        if (!room.guest_id) { log("尚未有參加者加入。", "bad"); return; }
         if (room.status !== "waiting") { log("遊戲狀態不允許開始。", "bad"); return; }
 
         const { data, error } = await state.sb
@@ -532,7 +535,7 @@
 
         const room = await fetchRoom(state.roomCode);
         if (!room) return;
-        if (!room.guest_id) { log("尚未有客人加入。", "bad"); return; }
+        if (!room.guest_id) { log("尚未有參加者加入。", "bad"); return; }
         if (room.status !== "ended") { log("只有在結束後才能開下一場。", "bad"); return; }
 
         const piles = randomPiles(room.num_piles, room.total_stones);
